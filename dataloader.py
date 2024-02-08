@@ -124,6 +124,321 @@ def get_alpacaeval(split: str, human_prefix: str, human_suffix: str, assistant_p
     return data
 
 
+def get_snorkel_pairrm_iter1(split: str, human_prefix: str, human_suffix: str, assistant_prefix: str, assistant_suffix: str) -> Dataset:
+    """
+    Load the Snorkel Mistral PairRM DPO dataset with 5 generations rankings and convert it into to a dictionary of Examples. 
+    This is used to train snorkelai/Snorkel-Mistral-PairRM-DPO via 3 iterations. This is train/test_iteration_1.
+
+    Args:
+        - split: must be 'test'; otherwise error will be thrown
+        - human_prefix: marks start of human turn ('\n\nHuman:' is the recommended choice and is set in config.yaml)
+        - human_suffix: marks end of human turn ('' is the recommended choice and is set in config.yaml)
+        - assistant_prefix: marks start of assistant turn ('\n\nAssistant:' is the recommended choice and is set in config.yaml)
+        - assistant_suffix: marks end of assistant turn ('' is the recommended choice and is set in config.yaml)
+
+    Returns:   
+        A Dataset instance.
+    """
+    if split == 'train': split = 'train_iteration_1'
+    elif split == 'test': split = 'test_iteration_1'
+    else: raise ValueError('snorkelai/Snorkel-Mistral-PairRM-DPO-Dataset requires split to be [train_iteration_1, test_iteration_1]')
+
+    rank0_print(f'Loading Snorkel PairRM ranked DPO dataset ({split} split) from Huggingface...')
+    dataset = datasets.load_dataset('snorkelai/Snorkel-Mistral-PairRM-DPO-Dataset', split=split)
+    if on_rank0():
+        dataset = tqdm.tqdm(dataset, desc='Processing Snorkel PairRM DPO Split #1')
+
+    data = Dataset('snorkel_dpo_pairrm_iter1')
+
+    for row in dataset:
+        prompt = human_prefix + row['prompt'] + human_suffix + assistant_prefix
+        chosen = row['chosen'][-1]['content']
+        rejected = row['rejected'][-1]['content']
+        responses = [chosen + assistant_suffix, rejected + assistant_suffix]
+        scores = [max(row['all_rm_scores']), min(row['all_rm_scores'])]
+        i, j = data[prompt].num_generations(), data[prompt].num_generations() + 1
+        data[prompt].pairs.append((i, j))
+        data[prompt].scores.extend(scores)
+        data[prompt].prompt = prompt
+        data[prompt].generations.extend(responses)
+        data[prompt].dataset_name = 'snorkel_dpo_pairrm_iter1'
+        # keep original prompt so that it can be dumped into a JSON file before running the alpacaeval command
+        data[prompt].original_prompt = row['prompt']
+        data[prompt].remove_extra_spaces()
+
+    return data
+
+
+def get_snorkel_pairrm_iter2(split: str, human_prefix: str, human_suffix: str, assistant_prefix: str, assistant_suffix: str) -> Dataset:
+    """
+    Load the Snorkel Mistral PairRM DPO dataset with 5 generations rankings and convert it into to a dictionary of Examples. 
+    This is used to train snorkelai/Snorkel-Mistral-PairRM-DPO via 3 iterations. This is train/test_iteration_2.
+
+    Args:
+        - split: must be 'test'; otherwise error will be thrown
+        - human_prefix: marks start of human turn ('\n\nHuman:' is the recommended choice and is set in config.yaml)
+        - human_suffix: marks end of human turn ('' is the recommended choice and is set in config.yaml)
+        - assistant_prefix: marks start of assistant turn ('\n\nAssistant:' is the recommended choice and is set in config.yaml)
+        - assistant_suffix: marks end of assistant turn ('' is the recommended choice and is set in config.yaml)
+
+    Returns:
+        A Dataset instance.
+    """
+    if split == 'train': split = 'train_iteration_2'
+    elif split == 'test': split = 'test_iteration_2'
+    else: raise ValueError('snorkelai/Snorkel-Mistral-PairRM-DPO-Dataset requires split to be [train_iteration_1, test_iteration_1]')
+
+    rank0_print(f'Loading Snorkel PairRM ranked DPO dataset ({split} split) from Huggingface...')
+    dataset = datasets.load_dataset('snorkelai/Snorkel-Mistral-PairRM-DPO-Dataset', split=split)
+    if on_rank0():
+        dataset = tqdm.tqdm(dataset, desc='Processing Snorkel PairRM DPO Split #2')
+
+    data = Dataset('snorkel_dpo_pairrm_iter2')
+
+    for row in dataset:
+        prompt = human_prefix + row['prompt'] + human_suffix + assistant_prefix
+        chosen = row['chosen'][-1]['content']
+        rejected = row['rejected'][-1]['content']
+        responses = [chosen + assistant_suffix, rejected + assistant_suffix]
+        scores = [max(row['all_rm_scores']), min(row['all_rm_scores'])]
+        i, j = data[prompt].num_generations(), data[prompt].num_generations() + 1
+        data[prompt].pairs.append((i, j))
+        data[prompt].scores.extend(scores)
+        data[prompt].prompt = prompt
+        data[prompt].generations.extend(responses)
+        data[prompt].dataset_name = 'snorkel_dpo_pairrm_iter2'
+        # keep original prompt so that it can be dumped into a JSON file before running the alpacaeval command
+        data[prompt].original_prompt = row['prompt']
+        data[prompt].remove_extra_spaces()
+
+    return data
+
+
+def get_snorkel_pairrm_iter3(split: str, human_prefix: str, human_suffix: str, assistant_prefix: str, assistant_suffix: str) -> Dataset:
+    """
+    Load the Snorkel Mistral PairRM DPO dataset with 5 generations rankings and convert it into to a dictionary of Examples. 
+    This is used to train snorkelai/Snorkel-Mistral-PairRM-DPO via 3 iterations. This is train/test_iteration_3.
+
+    Args:
+        - split: must be 'test'; otherwise error will be thrown
+        - human_prefix: marks start of human turn ('\n\nHuman:' is the recommended choice and is set in config.yaml)
+        - human_suffix: marks end of human turn ('' is the recommended choice and is set in config.yaml)
+        - assistant_prefix: marks start of assistant turn ('\n\nAssistant:' is the recommended choice and is set in config.yaml)
+        - assistant_suffix: marks end of assistant turn ('' is the recommended choice and is set in config.yaml)
+
+    Returns:
+        A Dataset instance.
+    """
+    if split == 'train': split = 'train_iteration_3'
+    elif split == 'test': split = 'test_iteration_3'
+    else: raise ValueError('HuggingFaceH4/orca_dpo_pairs requires split to be [train_iteration_2, test_iteration_2]')
+
+    rank0_print(f'Loading Snorkel PairRM ranked DPO dataset ({split} split) from Huggingface...')
+    dataset = datasets.load_dataset('snorkelai/Snorkel-Mistral-PairRM-DPO-Dataset', split=split)
+    if on_rank0():
+        dataset = tqdm.tqdm(dataset, desc='Processing Snorkel PairRM DPO Split #3')
+
+    data = Dataset('snorkel_dpo_pairrm_iter3')
+
+    for row in dataset:
+        prompt = human_prefix + row['prompt'] + human_suffix + assistant_prefix
+        chosen = row['chosen'][-1]['content']
+        rejected = row['rejected'][-1]['content']
+        responses = [chosen + assistant_suffix, rejected + assistant_suffix]
+        scores = [max(row['all_rm_scores']), min(row['all_rm_scores'])]
+        i, j = data[prompt].num_generations(), data[prompt].num_generations() + 1
+        data[prompt].pairs.append((i, j))
+        data[prompt].scores.extend(scores)
+        data[prompt].prompt = prompt
+        data[prompt].generations.extend(responses)
+        data[prompt].dataset_name = 'snorkel_dpo_pairrm_iter3'
+        # keep original prompt so that it can be dumped into a JSON file before running the alpacaeval command
+        data[prompt].original_prompt = row['prompt']
+        data[prompt].remove_extra_spaces()
+
+    return data
+
+
+def get_orca_dpo(split: str, human_prefix: str, human_suffix: str, assistant_prefix: str, assistant_suffix: str) -> Dataset:
+    """
+    Load the Orca DPO Pairs dataset and convert it into to a dictionary of Examples. This is the unfiltered version unlike in OpenHermes.
+
+    Args:
+        - split: must be 'test'; otherwise error will be thrown
+        - human_prefix: marks start of human turn ('\n\nHuman:' is the recommended choice and is set in config.yaml)
+        - human_suffix: marks end of human turn ('' is the recommended choice and is set in config.yaml)
+        - assistant_prefix: marks start of assistant turn ('\n\nAssistant:' is the recommended choice and is set in config.yaml)
+        - assistant_suffix: marks end of assistant turn ('' is the recommended choice and is set in config.yaml)
+
+    Returns:   
+        A Dataset instance.
+    """
+    if split == 'train': split = 'train_prefs'
+    elif split == 'test': split = 'test_prefs'
+    else: raise ValueError('HuggingFaceH4/orca_dpo_pairs requires split to be [train_prefs, test_prefs]')
+
+    rank0_print(f'Loading Orca DPO dataset ({split} split) from Huggingface...')
+    dataset = datasets.load_dataset('HuggingFaceH4/orca_dpo_pairs', split=split)
+    if on_rank0():
+        dataset = tqdm.tqdm(dataset, desc='Processing Orca DPO Pairs')
+
+    data = Dataset('orca_dpo_pairs')
+
+    def split_and_combine_responses(ex):
+        for content_role in ex:
+            if content_role['role'] in ['system', 'user']: continue
+            if content_role['role'] == 'assistant':
+                return content_role['content']
+
+    for row in dataset:
+        prompt = human_prefix + row['prompt'] + human_suffix + assistant_prefix
+        chosen = split_and_combine_responses(row['chosen'])
+        rejected = split_and_combine_responses(row['rejected'])
+        responses = [chosen + assistant_suffix, rejected + assistant_suffix]
+        data[prompt].prompt = prompt
+        data[prompt].generations.extend(responses)
+        data[prompt].dataset_name = 'dpo orca pairs'
+        # keep original prompt so that it can be dumped into a JSON file before running the alpacaeval command
+        data[prompt].original_prompt = row['prompt']
+
+    return data
+
+
+def get_distilabel_orca_argilla_filter(split: str, human_prefix: str, human_suffix: str, assistant_prefix: str, assistant_suffix: str) -> Dataset:
+    """
+    Load the Stanford Human Preferences dataset from Huggingface and convert it into to a dictionary of Examples.
+
+    We filter preference pairs to only keep pairs where the chosen score is at least 8 (reducing by 54% as cited by argilla).
+
+    Args:
+        - split: one of 'test', 'train'
+        - human_prefix: marks start of human turn ('\n\nHuman:' is the recommended choice and is set in config.yaml)
+        - human_suffix: marks end of human turn ('' is the recommended choice and is set in config.yaml)
+        - assistant_prefix: marks start of human turn ('\n\nAssistant:' is the recommended choice and is set in config.yaml)
+        - assistant_suffix: marks end of human turn ('' is the recommended choice and is set in config.yaml)
+
+    Returns:   
+        A Dataset instance.
+    """
+    MAX_PAIRS_PER_PROMPT = 5
+
+    rank0_print(f'Loading argilla/distilabel-intel-orca-dpo-pairs dataset ({split} split) from Huggingface...')
+    dataset = datasets.load_dataset('argilla/distilabel-intel-orca-dpo-pairs', split='train')
+    dataset = dataset.filter(
+        lambda r: 
+            r["status"] != "tie" and 
+            r["chosen_score"] >= 8 and 
+            not r["in_gsm8k_train"]
+    )
+    train_test_ds = dataset.train_test_split(test_size=10, shuffle=False, seed=42)
+    if split == 'train': 
+        dataset = train_test_ds['train']
+    elif split == 'test':
+        dataset = train_test_ds['test']
+    else:
+        raise ValueError('split must be train or test')
+    if on_rank0():
+        dataset = tqdm.tqdm(dataset, desc='Processing distilable orca dpo pairs')
+
+    data = Dataset('distilabel_orca_argilla_filter')
+
+    for row in dataset:
+        prompt = human_prefix + row['input'] + human_suffix + assistant_prefix
+        responses = [row['chosen'] + assistant_suffix, row['rejected'] + assistant_suffix]
+
+        i,j = data[prompt].num_generations(), data[prompt].num_generations() + 1
+        data[prompt].prompt = prompt
+        data[prompt].generations.extend(responses)
+        data[prompt].pairs.append((i, j))
+        data[prompt].truncation_mode = 'keep_start' # keep start for SHP because it's single-turn with long prompts
+        data[prompt].sft_index = 0  # absolute best response cannot be inferred, so just pick the first
+        data[prompt].dataset_name = 'distilabel_orca_argilla_filter'
+        data[prompt].remove_extra_spaces()
+
+    # prevent over-fitting
+    if split == 'train':
+        for prompt in data:
+            data[prompt].pairs = random.sample(data[prompt].pairs, min(MAX_PAIRS_PER_PROMPT, len(data[prompt].pairs)))
+
+    return data
+
+
+def get_distilabel_orca_steamshp_filter(split: str, human_prefix: str, human_suffix: str, assistant_prefix: str, assistant_suffix: str) -> Dataset:
+    """
+    Load the Stanford Human Preferences dataset from Huggingface and convert it into to a dictionary of Examples.
+
+    We filter preference pairs to only keep pairs where there are no ties.
+
+    As recommended in the SteamSHPs' (reward models) data cards:
+        Maximum number of pairs per prompt is 5 (in the training data, to avoid overfitting).
+        Minimum score ratio of preferred to dispreferred response is 2, t 
+
+    Args:
+        - split: one of 'test', 'train'
+        - human_prefix: marks start of human turn ('\n\nHuman:' is the recommended choice and is set in config.yaml)
+        - human_suffix: marks end of human turn ('' is the recommended choice and is set in config.yaml)
+        - assistant_prefix: marks start of human turn ('\n\nAssistant:' is the recommended choice and is set in config.yaml)
+        - assistant_suffix: marks end of human turn ('' is the recommended choice and is set in config.yaml)
+
+    Returns:   
+        A Dataset instance.
+    """
+    MAX_PAIRS_PER_PROMPT = 5
+    MIN_SCORE_RATIO = 2
+
+    rank0_print(f'Loading argilla/distilabel-intel-orca-dpo-pairs dataset ({split} split) from Huggingface...')
+    dataset = datasets.load_dataset('argilla/distilabel-intel-orca-dpo-pairs', split='train')
+    dataset = dataset.filter(
+        lambda r: 
+            r["status"] != "tie" and 
+            not r["in_gsm8k_train"]
+    )
+    train_test_ds = dataset.train_test_split(test_size=10, shuffle=False, seed=42)
+    if split == 'train': 
+        dataset = train_test_ds['train']
+    elif split == 'test':
+        dataset = train_test_ds['test']
+    else:
+        raise ValueError('split must be train or test')
+    if on_rank0():
+        dataset = tqdm.tqdm(dataset, desc='Processing distilable orca dpo pairs')
+
+    data = Dataset('distilabel_orca_steamshp_filter')
+
+    for row in dataset:
+        prompt = human_prefix + row['input'] + human_suffix + assistant_prefix
+        responses = [row['chosen'] + assistant_suffix, row['rejected'] + assistant_suffix]
+        scores = [row['rating'][0], row['rating'][1]]  # doesn't matter if something was swapped, we want the abs ratios!
+        score_ratios = []
+        if scores[0] != 0:
+            score_ratios.append(scores[1] / scores[0])
+        if scores[1] != 0:
+            score_ratios.append(scores[0] / scores[1])
+        if len(score_ratios) == 0:
+            print(f'Warning: score[0] is 0 for prompt {prompt}')
+            continue
+        score_ratio = max(score_ratios)
+        if score_ratio < MIN_SCORE_RATIO and split == 'train':
+            continue
+
+        i,j = data[prompt].num_generations(), data[prompt].num_generations() + 1
+        data[prompt].prompt = prompt
+        data[prompt].generations.extend(responses)
+        data[prompt].pairs.append((i, j))
+        data[prompt].scores.extend(scores)
+        data[prompt].truncation_mode = 'keep_start' # keep start for SHP because it's single-turn with long prompts
+        data[prompt].sft_index = 0  # absolute best response cannot be inferred, so just pick the first
+        data[prompt].dataset_name = 'distilabel_orca_steamshp_filter'
+        data[prompt].remove_extra_spaces()
+
+    # prevent over-fitting
+    if split == 'train':
+        for prompt in data:
+            data[prompt].pairs = random.sample(data[prompt].pairs, min(MAX_PAIRS_PER_PROMPT, len(data[prompt].pairs)))
+
+    return data
+
+
 def get_shp(split: str, human_prefix: str, human_suffix: str, assistant_prefix: str, assistant_suffix: str) -> Dataset:
     """
     Load the Stanford Human Preferences dataset from Huggingface and convert it into to a Dataset.
@@ -429,6 +744,7 @@ class DataLoader:
 
         for name in dataset_names:
             dataset = globals()[f"get_{name}"](split, human_prefix, human_suffix, assistant_prefix, assistant_suffix)
+            breakpoint()
             self.full_data.update(dataset.data)
 
     def collate(self, batch: Dict[str, List]) -> Dict:
@@ -769,6 +1085,7 @@ class UnpairedPreferenceDataLoader(DataLoader):
         """
         Return a flat list of examples given a list of prompts that index self.full_data.
         """
+        breakpoint()
         if self.max_prompt_count:
             num_unique = sum(min(self.max_prompt_count, len(self.full_data[prompt].pairs)) for prompt in prompts)
         else:
@@ -796,12 +1113,15 @@ class UnpairedPreferenceDataLoader(DataLoader):
                     flat_data.append((example, example.generations[j], 'rejected'))
                     seen_undesirable += 1
 
+        if not flat_data:
+            raise ValueError("No data to load")
         return flat_data
 
     def __iter__(self):
         prompts = list(self.full_data.keys()) 
         random.shuffle(prompts) # otherwise, will be frontloaded with prompts in same domain
         flat_data = self.get_flat_data(prompts)
+        breakpoint()
 
         epoch_idx = 0
         example_idx = 0
